@@ -1,0 +1,5 @@
+bgload title.jpg
+music opening.mp3
+choice Start Game
+
+jump aastart.scr
