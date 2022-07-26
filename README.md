@@ -14,5 +14,7 @@ In vnds folder there will be a folder named novel that will include all the file
 MIDI files are not converted by the script.
 If you want music you have to convert them to mp3 and then copy then to the sound directory of the novel.
 
+The novel is converted to the so called high resolution for VNDS 640x480
+
 Have fun.
 
