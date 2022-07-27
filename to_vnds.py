@@ -731,7 +731,7 @@ def read_script(script_file:str, collect_jumps:int):
 
 
 
-#export_files()
+export_files()
 
 not_used_corrupted_script_files = ["F17_34.AB"]
 
