@@ -661,7 +661,7 @@ def read_script(script_file:str, collect_jumps:int):
             collect_character(s)
             s = os.path.splitext(s)[0]
             vnds.write("bgload " + prev_bg_file + " 0\n")
-            vnds.write("setimg " + s + ".png 160 " + str(screen_offset[1]) + "\n")
+            vnds.write("setimg " + s + ".png 64 6\n")
             if debug: vnds.write("#character " + s + "\n")
         elif op == 0x4C: #{ // TWO CHARACTERS
             #print("TWO CHARACTERS")
@@ -670,8 +670,8 @@ def read_script(script_file:str, collect_jumps:int):
             collect_character(s1)
             collect_character(s2)
             vnds.write("bgload " + prev_bg_file + " 0\n")
-            vnds.write("setimg " + s1 + ".png 0 " + str(screen_offset[1]) + "\n")
-            vnds.write("setimg " + s2 + ".png 320 " + str(screen_offset[1]) + "\n")
+            vnds.write("setimg " + s1 + ".png 0 6\n")
+            vnds.write("setimg " + s2 + ".png 128 6\n")
             if debug: vnds.write("#character 1" + s1 + "\n")
             if debug: vnds.write("#character 2" + s2 + "\n")
         #IMAGE/EFFECT RELATED
