@@ -207,12 +207,15 @@ def collect_bg(s:str):
             missing_images.append(file_name)
     
     m = Image.open(file_name)
-    m = m.resize((640, 420))
+    if m.size[0] == 640:
+        m = m.crop((32,8, 32 + 576, 8 + 376))
+    m = m.resize(back_size, Image.Resampling.HAMMING )
     img = Image.new("RGB", screen_size, (0, 0, 0))
     img.paste(m, screen_offset)
     #img.paste(m, (32,52))
     mk_dirtrees(out_file)
     img.save(out_file)
+    pass
 
 def collect_mask(prev_bg_file, s):
     global screen_size
@@ -518,11 +521,7 @@ def read_script(script_file:str, collect_jumps:int):
                 jumps.append(ptr)
             options.append([s, ptr])
             if debug: vnds.write("#OPTION " + s + " " + str(ptr) + "\n")
-        elif op == 0x0A: #{ // OPTION_RESHOW?
-            #print("OPTION_RESHOW?")
-            vnds.write("#OPTION_RESHOW?\n")
-            pass
-        elif op == 0x07: #{ // OPTION_SHOW
+        elif op == 0x07 or op == 0x0A: #{ // OPTION_SHOW | OPTION_RESHOW?
             #print("OPTION_SHOW")
             
             s = ""
@@ -632,11 +631,7 @@ def read_script(script_file:str, collect_jumps:int):
             if debug: vnds.write("#SOUND_STOP\n")
             pass
         #IMAGE RELATED
-        elif op == 0x46: #{ // BACKGROUND
-            #print("BACKGROUND")
-            s = STRING_GETSZ()
-            if debug: vnds.write("#BACKGROUND " + s + "\n")
-        elif op == 0x47: #{ // BACKGROUND_INNER
+        elif op == 0x47 or op == 0x46: #{ // BACKGROUND_INNER
             s = os.path.splitext(STRING_GETSZ().strip())[0]
             #t = SCRIPT_GET8()
             if debug: vnds.write("#BACKGROUND_INNER " + str(s) + "\n")
@@ -646,7 +641,7 @@ def read_script(script_file:str, collect_jumps:int):
                 print(s)
                 continue
             prev_bg_file = os.path.splitext(s)[0] + ".jpg"
-            vnds.write("bgload " + prev_bg_file + " 0\n")
+            vnds.write("bgload " + prev_bg_file + "\n")
             #script = script[1:]
         elif op == 0x16: #{ // IMAGE_MASK
             #print("IMAGE_MASK")
@@ -731,7 +726,7 @@ def read_script(script_file:str, collect_jumps:int):
 
 
 
-export_files()
+#export_files()
 
 not_used_corrupted_script_files = ["F17_34.AB"]
 
