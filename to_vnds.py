@@ -1,4 +1,5 @@
 from PIL import Image
+
 import subprocess
 
 import os
@@ -10,10 +11,11 @@ import pathlib
 
 import shutil
 
-screen_size = (640, 480)
-back_size = (640, 420)
-fg_size = (320, 420) #character images are just half width
-screen_offset = (0,16)
+screen_size = (288, 192)
+screen_size_HW = (144, 192)
+back_size = (288, 192)
+fg_size = (144, 192) #character images are just half width
+screen_offset = (0,0)
 
 debug:int = False
 
@@ -209,13 +211,16 @@ def collect_bg(s:str):
     m = Image.open(file_name)
     if m.size[0] == 640:
         m = m.crop((32,8, 32 + 576, 8 + 376))
-    m = m.resize(back_size, Image.Resampling.HAMMING )
+    m = m.resize(back_size, resample = Image.HAMMING )
     img = Image.new("RGB", screen_size, (0, 0, 0))
     img.paste(m, screen_offset)
     #img.paste(m, (32,52))
     mk_dirtrees(out_file)
     img.save(out_file)
     pass
+
+
+
 
 def collect_mask(prev_bg_file, s):
     global screen_size
@@ -249,7 +254,7 @@ def collect_mask(prev_bg_file, s):
     mask = mask.convert("L")
     out_img = Image.composite(m, b, mask)
 
-    out_img = out_img.resize((640, 420))
+    out_img = out_img.resize(back_size, resample = Image.HAMMING )
     
     img = Image.new("RGB", screen_size, (0, 0, 0))
     img.paste(out_img, screen_offset)
@@ -280,7 +285,12 @@ def collect_character(s:str):
     mask = Image.open(mask_file).convert("L")
     m1.putalpha(mask)
     mk_dirtrees(out_file)
-    m1.resize(fg_size).save(out_file)
+    m1 = m1.resize(fg_size, resample = Image.HAMMING )
+    
+    img = Image.new("RGBA", screen_size_HW, (0, 0, 0, 0))
+    img.paste(m1, screen_offset)
+    mk_dirtrees(out_file)
+    img.save(out_file)
 
 def get_map_option(x1:int, y1:int, x2:int, y2:int)->str:
     #114 42 167 78 Girl's dorm
@@ -371,7 +381,6 @@ def read_script(script_file:str, collect_jumps:int):
             script.append(m)
     vnds = open(out_scr_file, "w")
     vnds.write("\n")
-
     prev_bg_file = "black.jpg"
     while True:
         if not collect_jumps:
@@ -521,7 +530,7 @@ def read_script(script_file:str, collect_jumps:int):
                 jumps.append(ptr)
             options.append([s, ptr])
             if debug: vnds.write("#OPTION " + s + " " + str(ptr) + "\n")
-        elif op == 0x07 or op == 0x0A: #{ // OPTION_SHOW | OPTION_RESHOW?
+        elif op == 0x07 or op == 0x0A: #{ // OPTION_SHOW
             #print("OPTION_SHOW")
             
             s = ""
@@ -645,7 +654,9 @@ def read_script(script_file:str, collect_jumps:int):
             collect_bg(s)
             if s in wrong_images.keys():
                 s = wrong_images[s]
+                #print(script_file)
                 print(s)
+                #vnds.write("BAD_BG " + s + "\n")
                 continue
             prev_bg_file = os.path.splitext(s)[0] + ".jpg"
             vnds.write("bgload " + prev_bg_file + "\n")
@@ -679,15 +690,33 @@ def read_script(script_file:str, collect_jumps:int):
         #IMAGE/EFFECT RELATED
         elif op == 0x4D: #{ // ANIMATION ABCDEF
             #print("ANIMATION ABCDEF")
+            collect_bg("I_20A.BMP")
+            collect_bg("I_20B.BMP")
+            collect_bg("I_20C.BMP")
+            collect_bg("I_20D.BMP")
+            collect_bg("I_20E.BMP")
+            collect_bg("I_20F.BMP")
             if debug: vnds.write("#ANIMATION ABCDEF" + "\n")
+            vnds.write("bgload I_20A.jpg\n")
+            vnds.write("bgload I_20B.jpg\n")
+            vnds.write("bgload I_20C.jpg\n")
+            vnds.write("bgload I_20D.jpg\n")
+            vnds.write("bgload I_20E.jpg\n")
+            vnds.write("bgload I_20F.jpg\n")
+            #vnds.write("#ANIMATION ABCDEF" + "\n")
             pass
         elif op == 0x4F:   #// SCROLL_UP (add 'B')
             #print("SCROLL_UP (add 'B')")
-            if debug: vnds.write("#SCROLL_UP (add 'B')\n")
+            collect_bg("I_101B.BMP")
+            #vnds.write("#SCROLL_UP (add 'B')\n")
+            vnds.write("bgload I_101B.jpg\n")
             pass
         elif op == 0x4E: #{ // SCROLL_DOWN (add 'A')
             #print("SCROLL_DOWN (add 'A')")
-            if debug: vnds.write("#SCROLL_UP (add 'A')\n")
+            collect_bg("I_101A.BMP")
+            #vnds.write("#SCROLL_UP (add 'A')\n")
+            vnds.write("bgload I_101A.jpg\n")
+            pass
             pass
         #EFFECT RELATED
         elif op == 0x30: #{ // CLIP
@@ -716,7 +745,6 @@ def read_script(script_file:str, collect_jumps:int):
             #print("BUFFER_REPAINT")
             t = SCRIPT_GET16()
             if debug: vnds.write("#BUFFER_REPAINT " + str(t) + "\n")
-        #ERRORS --- Don't know why but those are errors in the script
         else:
             vnds.write("#-ERROR- " + str(op.to_bytes(2, "little")) + "\n")
             #script = script[2:]
@@ -725,6 +753,7 @@ def read_script(script_file:str, collect_jumps:int):
             print("---------------------------------------------------------------------")
             print("In script file" + script_file + " op " + str(op) + " does not exists")
             print("---------------------------------------------------------------------")
+            #script_pos -=4
             #print(script)
             #break
     vnds.close()
@@ -760,6 +789,6 @@ info.write("title=Divi Dead\n")
 info.close()
 
 img_ini = open("vnds\\novel\\img.ini", "w")
-img_ini.write("width=640\n")
-img_ini.write("height=480")
+img_ini.write("width=" + str(screen_size[0]) + "\n")
+img_ini.write("height=" + str(screen_size[1]) + "\n")
 img_ini.close()
