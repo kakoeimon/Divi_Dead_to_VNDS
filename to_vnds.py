@@ -635,6 +635,13 @@ def read_script(script_file:str, collect_jumps:int):
             s = os.path.splitext(STRING_GETSZ().strip())[0]
             #t = SCRIPT_GET8()
             if debug: vnds.write("#BACKGROUND_INNER " + str(s) + "\n")
+            
+            if s == "H_S4,0J":
+                s = "H_S4"
+                for _ in range(5): SCRIPT_GET8()
+            if s == "H_T3,0J":
+                s = "H_T3"
+                for _ in range(5): SCRIPT_GET8()
             collect_bg(s)
             if s in wrong_images.keys():
                 s = wrong_images[s]
@@ -726,7 +733,7 @@ def read_script(script_file:str, collect_jumps:int):
 
 
 
-#export_files()
+export_files()
 
 not_used_corrupted_script_files = ["F17_34.AB"]
 
@@ -734,8 +741,6 @@ for script_file in glob("out\\**\\*.AB", recursive=True):
     if not os.path.basename(script_file) in not_used_corrupted_script_files:
         convert_script(script_file)
 
-#shutil.copy("F27_41.scr", "vnds\\novel\\script\\F27_41.scr")
-#shutil.copy("F28_41.scr", "vnds\\novel\\script\\F28_41.scr")
 
 shutil.copy("main.scr", "vnds\\novel\\script\\main.scr")
 
