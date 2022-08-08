@@ -11,11 +11,11 @@ import pathlib
 
 import shutil
 
-screen_size = (288, 192)
-screen_size_HW = (144, 192)
-back_size = (288, 192)
-fg_size = (144, 192) #character images are just half width
-screen_offset = (0,0)
+screen_size = (640, 480)
+screen_size_HW = (320, 480)
+back_size = (640, 420)
+fg_size = (320, 420) #character images are just half width
+screen_offset = (0,16)
 
 debug:int = False
 
